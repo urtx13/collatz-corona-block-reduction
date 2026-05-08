@@ -1,4 +1,4 @@
-   (x,y) | gcd | class |          p |    |A_p| | periodic | sporadic
+   (x,y) | gcd | class |          p |    |A_p| | periodic | primitive
 ---------------------------------------------------------------------------
   ( 4, 2) |   2 |  r=2 |          7 |        1 |        1 |        0
   ( 6, 3) |   3 |  r=3 |         37 |        1 |        1 |        0
@@ -35,4 +35,4 @@
                  |      |         71 |    72420 |        0 |    72420
                  |      |      14303 |      391 |        0 |      391
 
-Wrote /home/claude/v2/data/classification.csv
+Wrote data/classification.csv
