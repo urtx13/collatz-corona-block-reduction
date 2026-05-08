@@ -1,127 +1,137 @@
 # Block Reduction and Mutual Exclusion in the Collatz Corona
 
-**Version 2** of the working draft and reproducibility archive.
+Working research note and reproducibility archive.
 
 ## Summary
 
-This is a substantial extension of the version 1 note (Zenodo, May 2026).
-Version 2 isolates a rigorous algebraic mechanism behind the empirical
-mutual-exclusion phenomenon recorded in version 1: a **block reduction
-lemma** for the cycle constant, combined with the standard algebraic
-factorisation `2^x - 3^y = (2^a - 3^b) * Phi_{a, b, r}` whenever
-`gcd(x, y) >= 2`.
+This repository accompanies the working draft:
 
-The lemma yields a recursive reduction of the cyclic obstruction within
-**periodic patterns** (those of the form `B^r` for some block `B`), and
-classifies admissible patterns into three regimes:
+**Block Reduction and Mutual Exclusion in the Collatz Corona**  
+Oriol Corcoll Arias, May 2026.
 
-  - **Periodic** (covered by the lemma)
-  - **Sporadic** (primitive period `y` within reducible parameter pairs)
-  - **Irreducible** (parameter pairs with `gcd(x, y) = 1`)
+The note studies the cyclic component of the accelerated Collatz map through the Collatz corona, following the cycle-equation framework of Bohm-Sontacchi, Lagarias, and Belaga-Mignotte.
 
-The conjecture is reformulated as the conjunction of two unresolved
-statements: one on sporadic patterns, one on irreducible base cases.
+The main contribution is an exact block-factorisation identity. If x = r*a, y = r*b, and an admissible exponent pattern is an r-fold repetition B^r of a base block B in Sigma(a,b), then
 
-## Author
+    C(rb, B^r) = C(b, B) * Phi_{a,b,r}
 
-Oriol Corcoll Arias (working draft, May 2026).
+where
+
+    Phi_{a,b,r} = sum_{j=0}^{r-1} 2^{j a} 3^{(r-1-j)b}.
+
+At the same time,
+
+    2^{ra} - 3^{rb} = (2^a - 3^b) * Phi_{a,b,r}.
+
+Therefore, on the periodic stratum of the Collatz corona, the cycle integrality condition at (x,y) reduces exactly to the corresponding condition for the smaller base pair (a,b). No coprimality assumption is needed for this global reduction.
+
+The note does not prove the Collatz conjecture or the absence of non-trivial cycles. It isolates a structural mechanism for periodic patterns and leaves two regimes open: sporadic primitive patterns in reducible parameter pairs and irreducible parameter pairs with gcd(x,y)=1.
 
 ## Repository structure
 
-```
-.
-├── README.md                          this file
-├── LICENSE                            MIT
-├── HOW_TO_PUBLISH.md                  GitHub / Zenodo instructions
-├── paper/
-│   ├── preprint.tex                   LaTeX source
-│   └── preprint.pdf                   compiled (6 pages)
-├── src/
-│   ├── enumerate_compositions.c       fast C enumerator (uint64, ~10^7 patterns/s)
-│   ├── verify_block_lemma.py          NEW: rigorous test of Lemma 1 (preprint)
-│   ├── classify_patterns.py           NEW: periodic / sporadic / irreducible classifier
-│   ├── mutual_exclusion.py            marginal vs. joint analysis (v1)
-│   └── verify_27_17.py                independent Python verification of (27, 17) (v1)
-├── data/
-│   ├── results_summary.csv            22 enumerated cases, totals
-│   ├── mutual_exclusion_24_15.csv     per-factor breakdown of (24, 15)
-│   └── classification.csv             NEW: pattern classification per case and prime
-└── results/
-    ├── log_runs.txt                   raw enumeration logs (large cases)
-    └── classification_log.txt         NEW: classification table
-```
+    .
+    ├── README.md
+    ├── LICENSE
+    ├── paper/
+    │   └── preprint.tex
+    ├── src/
+    │   ├── verify_block_lemma.py
+    │   └── classify_patterns.py
+    ├── data/
+    │   └── classification.csv
+    └── results/
+        └── classification_log.txt
 
-## What is new in version 2
+## Main files
 
-  1. **Lemma 1 (block reduction)** with full proof. For
-     `sigma = B^r` with `x = r*a`, `y = r*b`,
-     ```
-     C(y, sigma) = C(b, B) * Phi_{a, b, r}
-     ```
-     as integers, where `Phi_{a, b, r} = sum_{j=0..r-1} 2^{j*a} * 3^{(r-1-j)*b}`.
+- paper/preprint.tex — LaTeX source of the working draft.
+- src/verify_block_lemma.py — verification script for the block-factorisation identity.
+- src/classify_patterns.py — classifier for periodic, sporadic, and irreducible cases.
+- data/classification.csv — per-case classification table.
+- results/classification_log.txt — readable classification output.
 
-  2. **Proposition 2 (factorisation)**. The algebraic identity
-     `2^(r*a) - 3^(r*b) = (2^a - 3^b) * Phi_{a, b, r}`.
+## Featured reductions
 
-  3. **Corollary 4 (recursive reduction)**. Under coprimality
-     `gcd(2^a - 3^b, Phi_{a, b, r}) = 1`,
-     ```
-     (2^x - 3^y) | C(y, B^r)  iff  (2^a - 3^b) | C(b, B).
-     ```
+### (x,y) = (24,15)
 
-  4. **Theorem 5 (recursive structure)**. Conjecture 6 holds for all
-     reducible parameter pairs if it holds for irreducible parameter pairs
-     and for sporadic patterns of reducible pairs.
+    24 = 3*8, 15 = 3*5
+    2^24 - 3^15 = (2^8 - 3^5)(2^16 + 2^8*3^5 + 3^10)
+                 = 13 * 186793
 
-  5. **Three featured cases** with full algebraic identification:
-     - `(24, 15) = (3 * 8, 3 * 5)`: `186793 = Phi_{8, 5, 3}`
-     - `(16, 10) = (2 * 8, 2 * 5)`: `499 = 2^8 + 3^5 = Phi_{8, 5, 2}`
-     - `(26, 16) = (2 * 13, 2 * 8)`: `14753 = 2^13 + 3^8 = Phi_{13, 8, 2}`
+For every B in Sigma(8,5),
 
-  6. **Classification of all 22 tested cases** as irreducible / reducible
-     and per-prime breakdown of periodic vs. sporadic patterns
-     (`data/classification.csv`).
+    C(15, B^3) = 186793 * C(5, B).
+
+Thus the global cycle condition for repeated blocks B^3 reduces to
+
+    13 | C(5, B).
+
+### (x,y) = (16,10)
+
+    16 = 2*8, 10 = 2*5
+    2^16 - 3^10 = (2^8 - 3^5)(2^8 + 3^5)
+                 = 13 * 499
+
+For every B in Sigma(8,5),
+
+    C(10, B^2) = 499 * C(5, B).
+
+Thus the global cycle condition for repeated blocks B^2 reduces to
+
+    13 | C(5, B).
+
+### (x,y) = (15,9)
+
+    15 = 3*5, 9 = 3*3
+    2^15 - 3^9 = (2^5 - 3^3)(2^10 + 2^5*3^3 + 3^6)
+                = 5 * 2617
+
+For every B in Sigma(5,3),
+
+    C(9, B^3) = 2617 * C(3, B).
+
+Thus the global cycle condition for repeated blocks B^3 reduces to
+
+    5 | C(3, B).
+
+### (x,y) = (26,16)
+
+    26 = 2*13, 16 = 2*8
+    2^26 - 3^16 = (2^13 - 3^8)(2^13 + 3^8)
+                 = 1631 * 14753
+                 = 7 * 233 * 14753
+
+For every B in Sigma(13,8),
+
+    C(16, B^2) = 14753 * C(8, B).
+
+Thus the global cycle condition for repeated blocks B^2 reduces to
+
+    1631 | C(8, B).
 
 ## Quick reproduction
 
-```bash
-# 1. Build the C enumerator
-gcc -O3 -o enumerate_compositions src/enumerate_compositions.c
+Run:
 
-# 2. Verify the block lemma (random tests + featured cases)
-python3 src/verify_block_lemma.py
+    python3 src/verify_block_lemma.py
+    python3 src/classify_patterns.py
 
-# 3. Classify patterns by regime
-python3 src/classify_patterns.py
+## Status
 
-# 4. Mutual exclusion analysis (v1, still relevant)
-python3 src/mutual_exclusion.py
+This is a working draft. The block-factorisation identity is exact. The computational classification is finite and reproducible from the included scripts/data.
 
-# 5. Independent Python verification of the (27, 17) critical case
-python3 src/verify_27_17.py
-```
-
-## What is unchanged from version 1
-
-The empirical observations (Table 1 of the preprint), the mutual
-exclusion data at (24, 15), and the per-case enumeration logs.
-
-The mutual exclusion observation now has a **partial algebraic
-explanation** (via Corollary 3 + Corollary 4 of the preprint) that
-was missing in version 1.
+The note does not prove the Collatz conjecture. It does not prove the absence of non-trivial Collatz cycles. It gives an exact recursive reduction for periodic patterns in the Collatz corona and isolates the remaining obstruction in sporadic and irreducible regimes.
 
 ## Citation
 
-```bibtex
-@misc{corcoll2026blockv2,
-  author = {Oriol Corcoll Arias},
-  title  = {Block Reduction and Mutual Exclusion in the Collatz Corona, v2},
-  year   = {2026},
-  note   = {Working draft, supersedes Zenodo v1 (May 2026)},
-  url    = {https://github.com/<USER>/collatz-mutual-exclusion}
-}
-```
+    @misc{corcoll2026blockreduction,
+      author = {Corcoll Arias, Oriol},
+      title  = {Block Reduction and Mutual Exclusion in the Collatz Corona},
+      year   = {2026},
+      note   = {Working draft},
+      url    = {https://github.com/urtx13/collatz-corona-block-reduction}
+    }
 
 ## License
 
-MIT. See `LICENSE`.
+MIT. See LICENSE.
