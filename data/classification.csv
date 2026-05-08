@@ -1,4 +1,4 @@
-x,y,gcd,class,prime,A_p_size,periodic_count,sporadic_count
+x,y,gcd,class,prime,A_p_size,periodic_count,primitive_count
 4,2,2,r=2,7,1,1,0
 6,3,3,r=3,37,1,1,0
 8,5,1,irr,13,0,0,0
