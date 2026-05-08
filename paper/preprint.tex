@@ -1,0 +1,508 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{booktabs}
+
+\geometry{margin=1in}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+
+\theoremstyle{definition}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{definition}[theorem]{Definition}
+
+\title{Block Reduction and Mutual Exclusion\\
+in the Collatz Corona\\
+\large Version 2}
+\author{Oriol Corcoll Arias\\
+\small Working draft}
+\date{May 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+For the accelerated Collatz map, the cyclic component is governed by the
+integrality condition $(2^x - 3^y) \mid C(y, \vec\sigma)$, where
+$C(y, \vec\sigma) = \sum_{k=0}^{y-1} 3^{y-1-k} 2^{\sigma_k}$ is the cycle
+constant of an admissible exponent pattern $\vec\sigma$. The set
+$\mathcal{C}(x, y) = \{C(y, \vec\sigma)\}$ is the \emph{Collatz corona} of
+Belaga--Mignotte. Across $1{,}769{,}706{,}522$ patterns enumerated over 22
+parameter pairs, no non-trivial integrality is observed.
+
+The main contribution of this version is a rigorous algebraic mechanism that
+explains a substantial fraction of this avoidance. We prove a
+\emph{block reduction lemma}: when $\gcd(x, y) = g \geq 2$ and $\vec\sigma$
+is the $r$-fold repetition (for $r \mid g$, $r \geq 2$) of a base block $B$
+of length $b = y/r$ and weight $a = x/r$, the cycle constant satisfies the
+exact integer identity
+\[
+C(y, \vec\sigma) = C(b, B) \cdot \frac{2^x - 3^y}{2^a - 3^b}.
+\]
+Combined with the algebraic factorisation
+$2^x - 3^y = (2^a - 3^b) \, \Phi_{a, b, r}$,
+this yields a recursive reduction of the cyclic obstruction within periodic
+patterns: cycle integrality at $(x, y)$ for $\vec\sigma = B^r$ is equivalent
+to cycle integrality at $(a, b)$ for $B$, modulo a coprimality condition
+that holds in all empirically tested cases.
+
+The lemma forces algebraic divisibility of $C(y, \vec\sigma)$ by every prime
+factor of $\Phi_{a, b, r}$, regardless of the choice of $B$. This explains
+the empirical \emph{mutual exclusion} between divisibility events at distinct
+prime divisors of $2^x - 3^y$ recorded in the first version of this note: the
+factor $\Phi_{a, b, r}$ divides $C$ automatically, while the complementary
+factor $2^a - 3^b$ divides $C$ only via the strictly smaller cycle equation
+on $B$.
+
+Patterns admit a natural three-fold partition: \emph{periodic} (covered by
+the lemma), \emph{sporadic} (primitive period $y$ within reducible parameter
+pairs), and \emph{irreducible} (parameter pairs with $\gcd(x, y) = 1$). The
+lemma applies only to periodic patterns. The conjecture is shown to reduce
+to its statement on sporadic patterns of reducible pairs and on irreducible
+parameter pairs.
+
+The note does not prove the absence of non-trivial Collatz cycles. It
+isolates an algebraic mechanism, identifies the location of the unsolved
+part of the obstruction, and reformulates the cyclic component of Collatz
+as a problem about irreducible base cases.
+\end{abstract}
+
+
+\section{Setup and prior work}
+
+The accelerated Collatz map on odd positive integers is
+\[
+T(n) = \frac{3n + 1}{2^{v_2(3n + 1)}}.
+\]
+A periodic orbit with $y$ odd steps and $x$ total halvings is encoded by an
+admissible exponent pattern
+$\vec\sigma = (\sigma_0, \ldots, \sigma_{y-1})$,
+$0 = \sigma_0 < \sigma_1 < \cdots < \sigma_{y-1} < x$.
+The classical cycle equation \cite{bohm1978,lagarias1985} is
+\begin{equation}\label{eq:cycle}
+n_0 (2^x - 3^y) = C(y, \vec\sigma) := \sum_{k=0}^{y-1} 3^{y-1-k} 2^{\sigma_k}.
+\end{equation}
+A non-trivial cycle requires $2^x > 3^y$ and the integrality condition
+$(2^x - 3^y) \mid C(y, \vec\sigma)$.
+
+Equivalently, write $\vec\sigma$ as a positive composition $a_1, \ldots, a_y \ge 1$
+with $\sum a_k = x$, where $a_k = \sigma_k - \sigma_{k-1}$ (and $a_y = x - \sigma_{y-1}$). Let
+\[
+\Sigma(x, y) = \{\text{admissible patterns}\}, \qquad |\Sigma(x, y)| = \binom{x-1}{y-1}.
+\]
+Following \cite{belaga1998}, the integer $2^x - 3^y$ is the \emph{Collatz number}
+associated with $(x, y)$, and the finite set
+$\mathcal{C}(x, y) = \{C(y, \vec\sigma) : \vec\sigma \in \Sigma(x, y)\}$
+is the \emph{Collatz corona}.
+
+The trivial cycle $1 \to 1$ corresponds to $a_1 = \cdots = a_y = 2$, requiring
+$x = 2y$.
+
+Existing rigorous results on cycles approach the problem via Diophantine
+estimates and linear forms in logarithms; see Steiner~\cite{steiner1977},
+Eliahou~\cite{eliahou1993}, Simons--de Weger~\cite{sdw2005}, Simons~\cite{simons2008},
+Hercher~\cite{hercher2022}, with the current bound $m \ge 92$ on the number
+of local minima of any non-trivial cycle. Generalised settings appear in
+Belaga~\cite{belaga2003}, Belaga--Mignotte~\cite{belaga2006},
+Holden~\cite{holden2011}. Recent work of Dhiman--Pandey~\cite{dhiman2026}
+shows that the unrestricted cycle divisibility predicate
+$\mathcal{D}_y = \{(x, C) \in \mathbb{N}^2 : (2^x - 3^y) \mid C\}$
+is not Presburger-definable.
+
+
+\section{The block reduction lemma}\label{sec:block}
+
+The main rigorous result of this version isolates the algebraic structure of
+the Collatz corona on patterns admitting a periodic block decomposition.
+
+\begin{lemma}[Block reduction]\label{lem:block}
+Let $r \ge 1$, and write $x = r a$, $y = r b$ with $a, b \ge 1$. Let
+$B = (b_1, \ldots, b_b)$ be a positive composition of $a$, and let
+$\vec\sigma = (B, B, \ldots, B)$ denote the $r$-fold concatenation. Then
+\begin{equation}\label{eq:block-identity}
+C(y, \vec\sigma) = C(b, B) \cdot \sum_{j=0}^{r-1} 2^{j a} \, 3^{(r-1-j) b}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+The partial sums of $\vec\sigma$ are
+$\sigma_{j b + i} = j a + S_i$,
+where $S_0 = 0, S_1, \ldots, S_{b-1}$ are the partial sums of $B$, for
+$0 \le j \le r - 1$ and $0 \le i \le b - 1$. Substituting into \eqref{eq:cycle}:
+\begin{align*}
+C(y, \vec\sigma)
+&= \sum_{j=0}^{r-1} \sum_{i=0}^{b-1} 3^{r b - 1 - j b - i} \, 2^{j a + S_i} \\
+&= \sum_{j=0}^{r-1} 2^{j a} \, 3^{(r - 1 - j) b}
+   \sum_{i=0}^{b-1} 3^{b - 1 - i} \, 2^{S_i}
+ = C(b, B) \cdot \sum_{j=0}^{r-1} 2^{j a} \, 3^{(r - 1 - j) b}. \qedhere
+\end{align*}
+\end{proof}
+
+\begin{proposition}[Algebraic factorisation]\label{prop:factorisation}
+For every $r, a, b \ge 1$ with $2^a \neq 3^b$,
+\begin{equation}\label{eq:diff-factorisation}
+2^x - 3^y = (2^a - 3^b) \, \Phi_{a, b, r},
+\qquad
+\Phi_{a, b, r} := \sum_{j=0}^{r-1} 2^{j a} \, 3^{(r - 1 - j) b},
+\end{equation}
+where $x = r a$, $y = r b$.
+\end{proposition}
+
+\begin{proof}
+Apply the standard identity $A^r - B^r = (A - B) \sum_{j=0}^{r-1} A^{r-1-j} B^j$
+to $A = 2^a$, $B = 3^b$. Reindexing, $\sum_{j=0}^{r-1} (2^a)^{r-1-j} (3^b)^j
+= \sum_{j=0}^{r-1} 2^{(r-1-j) a} 3^{j b}$. The result \eqref{eq:diff-factorisation}
+follows after relabelling the summation index.
+\end{proof}
+
+\begin{corollary}[Forced divisibility]\label{cor:forced}
+Let $r, a, b \ge 1$ with $2^a > 3^b$, and let $\vec\sigma = B^r$ for any
+base block $B \in \Sigma(a, b)$. Then
+\[
+\Phi_{a, b, r} \mid C(y, \vec\sigma)
+\]
+as integers, regardless of the choice of $B$. Equivalently, every prime
+power $p^e$ dividing $\Phi_{a, b, r}$ also divides $C(y, \vec\sigma)$.
+\end{corollary}
+
+\begin{proof}
+Combining \eqref{eq:block-identity} and \eqref{eq:diff-factorisation},
+\[
+C(y, \vec\sigma) = C(b, B) \cdot \Phi_{a, b, r},
+\]
+which exhibits $\Phi_{a, b, r}$ as an integer factor of $C(y, \vec\sigma)$.
+\end{proof}
+
+\begin{corollary}[Recursive reduction]\label{cor:reduction}
+Under the hypotheses of Lemma~\ref{lem:block}, suppose
+$\gcd(2^a - 3^b, \Phi_{a, b, r}) = 1$. Then for $\vec\sigma = B^r$,
+\[
+(2^x - 3^y) \mid C(y, \vec\sigma)
+\quad \Longleftrightarrow \quad
+(2^a - 3^b) \mid C(b, B).
+\]
+\end{corollary}
+
+\begin{proof}
+By Corollary~\ref{cor:forced} and \eqref{eq:diff-factorisation},
+$(2^x - 3^y) \mid C(y, \vec\sigma)$ if and only if
+$(2^a - 3^b) \mid C(b, B) \cdot \Phi_{a, b, r}$. Coprimality forces
+$(2^a - 3^b) \mid C(b, B)$.
+\end{proof}
+
+\begin{remark}[On the coprimality hypothesis]
+Reducing $\Phi_{a, b, r}$ modulo $(2^a - 3^b)$, every $2^a$ is replaced by $3^b$,
+so $\Phi_{a, b, r} \equiv \sum_{j=0}^{r-1} 3^{j b} \cdot 3^{(r-1-j) b}
+= r \cdot 3^{(r-1) b} \pmod{2^a - 3^b}$. Hence
+$\gcd(2^a - 3^b, \Phi_{a, b, r}) = \gcd(2^a - 3^b, r \cdot 3^{(r-1) b})$.
+This is $1$ whenever $\gcd(2^a - 3^b, 6 r) = 1$, which holds in every case
+empirically tested in this note.
+\end{remark}
+
+
+\section{The structure of the cyclic obstruction}
+
+\begin{definition}[Periodic, sporadic, irreducible]\label{def:regimes}
+Let $(x, y)$ be a parameter pair with $2^x > 3^y$ and $\gcd(x, y) = g$.
+\begin{itemize}
+\item A pattern $\vec\sigma \in \Sigma(x, y)$ is \emph{periodic of order $r$}
+if $r \mid g$, $r \ge 2$, and $\vec\sigma = B^r$ for some base block
+$B \in \Sigma(x/r, y/r)$.
+\item A pattern with primitive period exactly $y$ is \emph{sporadic}.
+\item The parameter pair $(x, y)$ is \emph{irreducible} if $g = 1$, and
+\emph{reducible} if $g \ge 2$.
+\end{itemize}
+\end{definition}
+
+\begin{conjecture}[Restricted zero-avoidance]\label{conj:main}
+Let $(x, y)$ satisfy $2^x > 3^y$. If $\vec\sigma \in \Sigma(x, y)$ satisfies
+$C(y, \vec\sigma) \equiv 0 \pmod{2^x - 3^y}$, then $(x, y) = (2 y, y)$
+and $\vec\sigma$ is the trivial cycle.
+\end{conjecture}
+
+\begin{theorem}[Recursive structure of Conjecture~\ref{conj:main}]\label{thm:reduction-structure}
+Suppose Conjecture~\ref{conj:main} holds for every irreducible parameter pair
+with $2^a > 3^b$, and additionally that no sporadic pattern violates it.
+Assume the coprimality $\gcd(2^a - 3^b, \Phi_{a, b, r}) = 1$ in all reductions.
+Then Conjecture~\ref{conj:main} holds for every reducible parameter pair as well.
+\end{theorem}
+
+\begin{proof}
+Let $(x, y)$ be reducible with $\gcd(x, y) = g \ge 2$, and let
+$\vec\sigma \in \Sigma(x, y)$ satisfy $(2^x - 3^y) \mid C(y, \vec\sigma)$.
+If $\vec\sigma$ is sporadic, the conclusion holds by hypothesis. Otherwise
+$\vec\sigma = B^r$ for some $r \mid g$, $r \ge 2$, with $B \in \Sigma(x/r, y/r)$.
+By Corollary~\ref{cor:reduction}, $(2^{x/r} - 3^{y/r}) \mid C(y/r, B)$. Iterating,
+either $\vec\sigma$ remains periodic indefinitely (forcing $a_i = 2$ for all $i$
+in the limit, hence the trivial cycle), or the recursion terminates at a sporadic
+pattern of some reducible pair, or at an irreducible base case. By hypothesis,
+neither of the latter two yields a non-trivial cycle.
+\end{proof}
+
+The remaining content of Conjecture~\ref{conj:main} is therefore concentrated in
+two regimes: \emph{irreducible parameter pairs}, and \emph{sporadic patterns} of
+reducible pairs. For both regimes, the present note offers only empirical evidence.
+
+
+\section{Empirical observations}
+
+\subsection{Aggregate avoidance}\label{sec:aggregate}
+
+Across 22 parameter pairs with $2^x > 3^y$, exhaustive enumeration totalled
+$1{,}769{,}706{,}522$ admissible patterns. The naive Crandall benchmark
+$E_{\mathrm{Cr}}(x, y) = |\Sigma(x, y)| / (2^x - 3^y)$ aggregates to
+$\sum E_{\mathrm{Cr}} \approx 7.21$ across non-trivial pairs. The observed
+count of non-trivial integrality events is $0$.
+
+\begin{table}[h]
+\centering
+\small
+\caption{Selected enumerated pairs. The class column distinguishes
+trivial ($x = 2 y$), reducible ($\gcd(x, y) = r \ge 2$, marked
+\emph{red.\,r}), and irreducible (\emph{irr.}). Full 22-row table in the archive.}
+\label{tab:agg}
+\begin{tabular}{rrrrrrl}
+\toprule
+$y$ & $x$ & $|\Sigma|$ & $2^x - 3^y$ & $E_\mathrm{Cr}$ & non-triv.\ zeros & class \\
+\midrule
+5  & 8  & 35           & 13            & 2.69 & 0 & irr.\ \\
+9  & 15 & 3{,}003      & 13{,}085      & 0.23 & 0 & red.\ 3 \\
+10 & 16 & 5{,}005      & 6{,}487       & 0.77 & 0 & red.\ 2 \\
+12 & 20 & 75{,}582     & 517{,}135     & 0.15 & 0 & red.\ 4 \\
+13 & 22 & 293{,}930    & 2{,}599{,}981 & 0.11 & 0 & irr.\ \\
+15 & 24 & 817{,}190    & 2{,}428{,}309 & 0.34 & 0 & red.\ 3 \\
+16 & 26 & 3{,}268{,}760 & 24{,}062{,}143 & 0.14 & 0 & red.\ 2 \\
+17 & 27 & 5{,}311{,}735 & 5{,}077{,}565 & 1.05 & 0 & irr.\ \\
+19 & 31 & 86{,}493{,}225 & 985{,}222{,}181 & 0.09 & 0 & irr.\ \\
+21 & 34 & 573{,}166{,}440 & 6{,}719{,}515{,}981 & 0.09 & 0 & irr.\ \\
+22 & 35 & 927{,}983{,}760 & 2{,}978{,}678{,}759 & 0.31 & 0 & irr.\ \\
+\midrule
+\multicolumn{4}{r}{\textit{aggregate over all 22 enumerated non-trivial rows}}
+& 7.21 & 0 & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Concrete instances of the block reduction}\label{sec:instances}
+
+We illustrate Lemma~\ref{lem:block} on three reducible cases.
+
+\paragraph{Case $(x, y) = (24, 15)$, $r = 3$, $(a, b) = (8, 5)$.}
+Here
+$2^{24} - 3^{15} = 13 \cdot 186{,}793$,
+where $13 = 2^8 - 3^5$ and
+$186{,}793 = 2^{16} + 2^8 \cdot 3^5 + 3^{10} = \Phi_{8, 5, 3}$.
+For every base block $B \in \Sigma(8, 5)$ (there are 35 such blocks), the
+identity
+\[
+C(15, B^3) = C(5, B) \cdot 186{,}793
+\]
+holds in $\mathbb{Z}$. Hence $186{,}793 \mid C(15, B^3)$ automatically, and
+$13 \mid C(15, B^3) \iff 13 \mid C(5, B)$. Direct enumeration shows that
+$C(5, B) \not\equiv 0 \pmod{13}$ for any of the 35 blocks. The 35 patterns
+of primitive period $5$ in $\Sigma(24, 15)$ are therefore not solutions of
+the cycle equation, by the lemma.
+
+\paragraph{Case $(x, y) = (16, 10)$, $r = 2$, $(a, b) = (8, 5)$.}
+Here
+$2^{16} - 3^{10} = 6{,}487 = 13 \cdot 499$,
+where $13 = 2^8 - 3^5$ and $499 = 2^8 + 3^5 = \Phi_{8, 5, 2}$. For every
+$B \in \Sigma(8, 5)$,
+\[
+C(10, B^2) = C(5, B) \cdot 499.
+\]
+Hence $499 \mid C(10, B^2)$ automatically, and again
+$13 \mid C(10, B^2) \iff 13 \mid C(5, B)$. None of the 35 blocks satisfies the
+latter, so the periodic patterns of order $2$ in $\Sigma(16, 10)$ contribute
+no cycle solutions.
+
+\paragraph{Case $(x, y) = (26, 16)$, $r = 2$, $(a, b) = (13, 8)$.}
+Here
+$2^{26} - 3^{16} = (2^{13} - 3^8)(2^{13} + 3^8) = 1{,}631 \cdot 14{,}753$,
+with $1{,}631 = 7 \cdot 233$ and $14{,}753$ prime. The block reduction with
+$r = 2$ gives, for every $B \in \Sigma(13, 8)$ (there are $\binom{12}{7} = 792$
+such blocks),
+\[
+C(16, B^2) = C(8, B) \cdot 14{,}753.
+\]
+Hence $14{,}753 \mid C(16, B^2)$ automatically, and
+$1{,}631 \mid C(16, B^2) \iff 1{,}631 \mid C(8, B)$. Direct enumeration shows
+that none of the 792 blocks satisfies $1{,}631 \mid C(8, B)$.
+
+\subsection{The mutual exclusion phenomenon, revisited}\label{sec:mutex}
+
+The mutual exclusion observation recorded in version 1 of this note now
+admits a partial algebraic interpretation. For each reducible pair $(x, y)$
+with $\gcd(x, y) = r \ge 2$, the prime divisors of $2^x - 3^y$ split into:
+\begin{itemize}
+\item primes dividing $\Phi_{a, b, r}$, which divide $C(y, B^r)$
+\emph{automatically} (Corollary~\ref{cor:forced});
+\item primes dividing $2^a - 3^b$, which divide $C(y, B^r)$ only via
+$C(b, B)$ (Corollary~\ref{cor:reduction}).
+\end{itemize}
+On the periodic stratum, these two groups of primes act on disjoint
+arithmetic conditions: the first via algebraic identity, the second via
+the cycle equation at the smaller pair $(a, b)$. The empirical mutual
+exclusion of divisibility events at distinct prime divisors of $2^x - 3^y$
+is a direct consequence of this algebraic split, on the periodic stratum.
+
+\subsection{Sporadic patterns}\label{sec:sporadic}
+
+For each reducible pair tested, a small number of admissible patterns of
+primitive period $y$ also satisfy divisibility by some prime factor of
+$2^x - 3^y$, without admitting a block decomposition. We refer to these as
+\emph{sporadic patterns}. For example, in $\Sigma(24, 15)$ the set
+$A_{186{,}793} = \{\vec\sigma : 186{,}793 \mid C(15, \vec\sigma)\}$ contains
+50 patterns: 35 are periodic of order $3$ (covered by
+Lemma~\ref{lem:block}), and 15 form a single rotation class of primitive
+period $15$, which is sporadic. None of the sporadic patterns observed in
+any tested case extends to a full integer cycle.
+
+The block reduction lemma does not apply to sporadic patterns. Their
+arithmetic structure remains an open question.
+
+
+\section{Limitations and open questions}
+
+\begin{enumerate}
+\item Lemma~\ref{lem:block} addresses only periodic patterns. The
+conjecture restricted to sporadic patterns is unproved.
+
+\item For irreducible parameter pairs $(\gcd(x, y) = 1)$ no block
+reduction is available. The empirical evidence at irreducible pairs is
+recorded in Table~\ref{tab:agg} but unsupported by the present mechanism.
+The case $(8, 5)$ is the smallest irreducible base case ($|\Sigma| = 35$,
+$2^8 - 3^5 = 13$); cycle integrality fails by direct enumeration but
+without an algebraic explanation.
+
+\item The recursive structure of
+Theorem~\ref{thm:reduction-structure} terminates either at irreducible
+pairs or at sporadic patterns of reducible pairs. Both are unresolved.
+The conjecture for the cyclic component of Collatz is therefore
+reformulated as the conjunction of two independent conjectures: one on
+sporadic patterns, one on irreducible base cases.
+
+\item The coprimality hypothesis
+$\gcd(2^a - 3^b, \Phi_{a, b, r}) = 1$ holds in every case empirically
+tested, and is implied by $\gcd(2^a - 3^b, 6 r) = 1$. We do not know
+whether the hypothesis can fail in arithmetically singular cases.
+
+\item Enumeration is bounded by $|\Sigma| \le 10^9$ on a single machine.
+Convergent pairs of $\log_2 3$ beyond $(65, 41)$ are inaccessible.
+
+\item The literature survey is preliminary. The block-reduction
+identity \eqref{eq:block-identity} is elementary and may have appeared
+in the cycle-equation literature; any precedent will be acknowledged.
+The use of this identity to recursively reduce the cyclic obstruction,
+to the author's knowledge, has not been recorded explicitly.
+
+\item The note does not prove the absence of non-trivial Collatz cycles.
+It identifies a partial mechanism, isolates the unsolved residue, and
+relates it to known classical questions on $S$-unit sums.
+
+\end{enumerate}
+
+
+\paragraph{Code and data.}
+A reproducibility archive containing the enumeration code, all parameter
+data, the block-reduction verification scripts, and the per-case
+prime-power decompositions accompanies the public version of this note.
+
+\paragraph{Acknowledgements.}
+This version corrects and substantially extends version 1
+(Zenodo, May 2026) by isolating the algebraic mechanism behind the
+empirical mutual exclusion observed there, and by introducing the
+periodic / sporadic / irreducible classification of patterns.
+
+
+\begin{thebibliography}{12}
+\small
+
+\bibitem{belaga1998}
+E.~B.~Belaga and M.~Mignotte.
+\emph{Embedding the $3x+1$ conjecture in a $3x+d$ context.}
+Experimental Mathematics \textbf{7} (1998), 145--151.
+
+\bibitem{belaga2003}
+E.~B.~Belaga.
+\emph{Effective polynomial upper bounds to perigees and numbers of
+$(3x+d)$-cycles of a given oddlength.}
+Acta Arithmetica \textbf{106} (2003), 197--206.
+
+\bibitem{belaga2006}
+E.~B.~Belaga and M.~Mignotte.
+\emph{The Collatz Problem and Its Generalizations: Experimental Data.
+Table 1. Primitive Cycles of $(3n+d)$-mappings.}
+HAL hal-00129727, 2006.
+
+\bibitem{bohm1978}
+C.~B\"ohm and G.~Sontacchi.
+\emph{On the existence of cycles of given length in integer sequences
+like $x_{n+1} = x_n / 2$ if $x_n$ is even, and $x_{n+1} = 3 x_n + 1$
+otherwise.}
+Atti della Accademia Nazionale dei Lincei, Rendiconti \textbf{64}
+(1978), 260--264.
+
+\bibitem{crandall1978}
+R.~E.~Crandall.
+\emph{On the ``$3x+1$'' problem.}
+Mathematics of Computation \textbf{32} (1978), 1281--1292.
+
+\bibitem{dhiman2026}
+M.~Dhiman and R.~Pandey.
+\emph{2-Adic Obstructions to Presburger-Definable Characterizations of
+Collatz Cycles.}
+arXiv:2601.12772, 2026.
+
+\bibitem{eliahou1993}
+S.~Eliahou.
+\emph{The $3x+1$ problem: new lower bounds on nontrivial cycle lengths.}
+Discrete Mathematics \textbf{118} (1993), 45--56.
+
+\bibitem{hercher2022}
+C.~Hercher.
+\emph{There are no Collatz $m$-cycles with $m \le 91$.}
+arXiv:2201.00406, 2022.
+
+\bibitem{holden2011}
+D.~Holden.
+\emph{Results on the $3x+1$ and $3x+d$ conjectures.}
+Fibonacci Quarterly \textbf{49}(2) (2011), 131--133.
+
+\bibitem{lagarias1985}
+J.~C.~Lagarias.
+\emph{The $3x+1$ problem and its generalizations.}
+American Mathematical Monthly \textbf{92} (1985), 3--23.
+
+\bibitem{sdw2005}
+J.~Simons and B.~de Weger.
+\emph{Theoretical and computational bounds for $m$-cycles of the $3n+1$
+problem.}
+Acta Arithmetica \textbf{117} (2005), 51--70.
+
+\bibitem{simons2008}
+J.~L.~Simons.
+\emph{On the (non-)existence of $m$-cycles for generalized Syracuse
+sequences.}
+Acta Arithmetica \textbf{131} (2008), 217--254.
+
+\bibitem{steiner1977}
+R.~P.~Steiner.
+\emph{A theorem on the Syracuse problem.}
+Proceedings of the 7th Manitoba Conference on Numerical Mathematics
+(1977), 553--559.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+
+# Archives / duplicates
+*.tar.gz
+*.zip
+
+# LaTeX auxiliary files
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
+*.bbl
+*.blg
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# C / compiled binaries
+*.o
+enumerate
+enumerate_compositions
+block_verify
+
+# Temporary files
+*.tmp
